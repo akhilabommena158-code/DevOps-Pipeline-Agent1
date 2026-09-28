@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hindsight AI DevOps Agent</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top right, #172554 0, #020617 35%),
+                #020617;
+            color: #e5e7eb;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            backdrop-filter: blur(14px);
+        }
+
+        .workflow-line {
+            height: 2px;
+            background: #334155;
+            flex: 1;
+        }
+
+        .stage {
+            min-width: 105px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+<!-- HEADER -->
+<header class="border-b border-slate-800 bg-slate-950/80">
+
+    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+
+        <div>
+            <h1 class="text-2xl font-bold text-white">
+                🧠 Hindsight AI
+                <span class="text-blue-400">DevOps Agent</span>
+            </h1>
+
+            <p class="text-sm text-slate-400 mt-1">
+                AI-powered project analysis, risk detection & CI/CD generation
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+
+            <span id="serverDot"
+                  class="w-3 h-3 rounded-full bg-yellow-400"></span>
+
+            <span id="serverStatus"
+                  class="text-sm text-slate-300">
+                Checking server...
+            </span>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+
+    <!-- INPUT CARD -->
+    <section class="glass rounded-2xl p-6 mb-8">
+
+        <div class="flex flex-col lg:flex-row gap-6">
+
+            <div class="flex-1">
+
+                <div class="flex gap-3 mb-5">
+
+                    <button
+                        id="repoTab"
+                        onclick="setMode('repository')"
+                        class="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium">
+
+                        🔗 Git Repository
+
+                    </button>
+
+                    <button
+                        id="websiteTab"
+                        onclick="setMode('website')"
+                        class="px-5 py-2 rounded-lg bg-slate-800 text-slate-300 font-medium">
+
+                        🌐 Website URL
+
+                    </button>
+
+                </div>
+
+
+                <label class="block text-sm text-slate-400 mb-2">
+                    Project / Repository URL
+                </label>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+
+                    <input
+                        id="projectUrl"
+                        type="text"
+                        placeholder="https://github.com/username/project"
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-white"
+                    >
+
+                    <button
+                        onclick="analyzeProject()"
+                        id="analyzeBtn"
+                        class="px-7 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-white">
+
+                        🔍 Analyze Project
+
+                    </button>
+
+                </div>
+
+                <p class="text-xs text-slate-500 mt-3">
+                    Public repositories are scanned using static analysis.
+                    Submitted project code is never executed.
+                </p>
+
+            </div>
+
+
+            <!-- QUICK INFO -->
+            <div class="lg:w-72 bg-slate-900/70 rounded-xl p-5">
+
+                <p class="text-xs text-slate-500 uppercase">
+                    Agent Status
+                </p>
+
+                <p class="text-xl font-semibold text-green-400 mt-2">
+                    ● Ready
+                </p>
+
+                <p class="text-sm text-slate-400 mt-3">
+                    Waiting for project analysis
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- PROGRESS -->
+    <section id="progressSection"
+             class="hidden glass rounded-2xl p-5 mb-8">
+
+        <div class="flex justify-between mb-3">
+
+            <span class="text-sm font-medium">
+                Hindsight AI analyzing project...
+            </span>
+
+            <span id="progressText"
+                  class="text-sm text-blue-400">
+                0%
+            </span>
+
+        </div>
+
+        <div class="w-full bg-slate-800 rounded-full h-2">
+
+            <div id="progressBar"
+                 class="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                 style="width:0%">
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- WORKFLOW -->
+    <section class="glass rounded-2xl p-6 mb-8">
+
+        <div class="flex items-center gap-2 mb-6">
+
+            <span class="text-xl">⚙️</span>
+
+            <h2 class="text-lg font-semibold">
+                Autonomous DevOps Workflow
+            </h2>
+
+        </div>
+
+
+        <div class="flex flex-wrap items-center gap-3">
+
+            <div class="stage text-center">
+                <div class="text-2xl">🔗</div>
+                <p class="text-xs mt-2">Project URL</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">🔍</div>
+                <p class="text-xs mt-2">Scanner</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">🧩</div>
+                <p class="text-xs mt-2">Stack Detection</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">🧠</div>
+                <p class="text-xs mt-2">Hindsight</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">⚠️</div>
+                <p class="text-xs mt-2">Risk Analysis</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">💡</div>
+                <p class="text-xs mt-2">Recommendations</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">⚙️</div>
+                <p class="text-xs mt-2">Pipeline</p>
+            </div>
+
+            <div class="workflow-line"></div>
+
+            <div class="stage text-center">
+                <div class="text-2xl">✅</div>
+                <p class="text-xs mt-2">Validation</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESULTS -->
+    <section id="results"
+             class="hidden">
+
+
+        <!-- TOP STATS -->
+        <div class="grid md:grid-cols-4 gap-4 mb-6">
+
+            <div class="glass rounded-xl p-5">
+
+                <p class="text-xs text-slate-500">
+                    FILES INSPECTED
+                </p>
+
+                <p id="filesCount"
+                   class="text-3xl font-bold mt-2">
+                    0
+                </p>
+
+            </div>
+
+
+            <div class="glass rounded-xl p-5">
+
+                <p class="text-xs text-slate-500">
+                    RISK LEVEL
+                </p>
+
+                <p id="riskLevel"
+                   class="text-3xl font-bold mt-2">
+                    -
+                </p>
+
+            </div>
+
+
+            <div class="glass rounded-xl p-5">
+
+                <p class="text-xs text-slate-500">
+                    STACK
+                </p>
+
+                <p id="stackCount"
+                   class="text-3xl font-bold mt-2">
+                    0
+                </p>
+
+            </div>
+
+
+            <div class="glass rounded-xl p-5">
+
+                <p class="text-xs text-slate-500">
+                    PIPELINE
+                </p>
+
+                <p class="text-3xl font-bold text-green-400 mt-2">
+                    READY
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- STACK + ANALYSIS -->
+        <div class="grid lg:grid-cols-2 gap-6 mb-6">
+
+
+            <!-- STACK -->
+            <div class="glass rounded-2xl p-6">
+
+                <h2 class="text-lg font-semibold mb-4">
+                    🧩 Detected Technology Stack
+                </h2>
+
+                <div id="stackContainer"
+                     class="flex flex-wrap gap-2">
+                </div>
+
+            </div>
+
+
+            <!-- ANALYSIS -->
+            <div class="glass rounded-2xl p-6">
+
+                <h2 class="text-lg font-semibold mb-4">
+                    🔍 Project Analysis
+                </h2>
+
+                <p id="summary"
+                   class="text-slate-300 leading-7">
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- HINDSIGHT -->
+        <div class="glass rounded-2xl p-6 mb-6">
+
+            <h2 class="text-lg font-semibold mb-5">
+                🧠 Hindsight Memory
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-5">
+
+                <div class="bg-slate-900 rounded-xl p-5">
+
+                    <p class="text-xs uppercase text-slate-500">
+                        Previous Failure
+                    </p>
+
+                    <p id="previousFailure"
+                       class="text-sm text-slate-300 mt-3 leading-6">
+                    </p>
+
+                </div>
+
+
+                <div class="bg-slate-900 rounded-xl p-5">
+
+                    <p class="text-xs uppercase text-slate-500">
+                        Previous Fix
+                    </p>
+
+                    <p id="previousFix"
+                       class="text-sm text-slate-300 mt-3 leading-6">
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RISKS -->
+        <div class="glass rounded-2xl p-6 mb-6">
+
+            <div class="flex justify-between items-center mb-5">
+
+                <h2 class="text-lg font-semibold">
+                    ⚠️ Risk Analysis
+                </h2>
+
+                <span id="riskBadge"
+                      class="px-4 py-1 rounded-full text-sm">
+                </span>
+
+            </div>
+
+            <div id="risksContainer"
+                 class="space-y-3">
+            </div>
+
+        </div>
+
+
+        <!-- RECOMMENDATIONS -->
+        <div class="glass rounded-2xl p-6 mb-6">
+
+            <h2 class="text-lg font-semibold mb-5">
+                💡 AI Recommendations
+            </h2>
+
+            <div id="recommendationsContainer"
+                 class="space-y-3">
+            </div>
+
+        </div>
+
+
+        <!-- PIPELINE -->
+        <div class="glass rounded-2xl p-6 mb-6">
+
+            <div class="flex justify-between items-center mb-5">
+
+                <div>
+
+                    <h2 class="text-lg font-semibold">
+                        ⚙️ Generated CI/CD Pipeline
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        GitHub Actions workflow generated by Hindsight AI
+                    </p>
+
+                </div>
+
+                <button
+                    onclick="copyPipeline()"
+                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm">
+
+                    📋 Copy YAML
+
+                </button>
+
+            </div>
+
+
+            <pre id="pipeline"
+                 class="bg-slate-950 border border-slate-800 rounded-xl p-5 text-sm text-blue-200 overflow-auto">
+            </pre>
+
+        </div>
+
+
+        <!-- VALIDATION -->
+        <div class="glass rounded-2xl p-6 mb-6">
+
+            <h2 class="text-lg font-semibold mb-5">
+                ✅ Pipeline Validation
+            </h2>
+
+            <div class="flex items-center gap-3 mb-4">
+
+                <span class="w-3 h-3 rounded-full bg-green-400"></span>
+
+                <span id="validationStatus"
+                      class="font-semibold text-green-400">
+                </span>
+
+            </div>
+
+            <div id="validationChecks"
+                 class="space-y-2">
+            </div>
+
+        </div>
+
+
+        <!-- FINAL -->
+        <div class="rounded-2xl p-8 bg-gradient-to-r from-blue-950 to-slate-900 border border-blue-900">
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-5">
+
+                <div>
+
+                    <p class="text-sm text-blue-400 font-semibold">
+                        HINDSIGHT AI RESULT
+                    </p>
+
+                    <h2 id="finalStatus"
+                        class="text-3xl font-bold text-white mt-2">
+                        Pipeline Ready
+                    </h2>
+
+                    <p id="finalMessage"
+                       class="text-slate-400 mt-2">
+                    </p>
+
+                </div>
+
+
+                <button
+                    onclick="downloadPipeline()"
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold">
+
+                    ⬇ Download Pipeline
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+
+let currentMode = "repository";
+let latestPipeline = "";
+
+
+/* --------------------------------
+   Check backend
+-------------------------------- */
+
+async function checkServer() {
+
+    try {
+
+        const response = await fetch("/api/health");
+
+        const data = await response.json();
+
+        if (data.status === "online") {
+
+            document.getElementById(
+                "serverDot"
+            ).className =
+                "w-3 h-3 rounded-full bg-green-400";
+
+            document.getElementById(
+                "serverStatus"
+            ).textContent =
+                "Agent Online";
+        }
+
+    } catch (error) {
+
+        document.getElementById(
+            "serverStatus"
+        ).textContent =
+            "Agent Offline";
+
+        document.getElementById(
+            "serverDot"
+        ).className =
+            "w-3 h-3 rounded-full bg-red-500";
+    }
+}
+
+
+/* --------------------------------
+   Change mode
+-------------------------------- */
+
+function setMode(mode) {
+
+    currentMode = mode;
+
+    const repoTab =
+        document.getElementById("repoTab");
+
+    const websiteTab =
+        document.getElementById("websiteTab");
+
+    if (mode === "repository") {
+
+        repoTab.className =
+            "px-5 py-2 rounded-lg bg-blue-600 text-white font-medium";
+
+        websiteTab.className =
+            "px-5 py-2 rounded-lg bg-slate-800 text-slate-300 font-medium";
+
+        document.getElementById(
+            "projectUrl"
+        ).placeholder =
+            "https://github.com/username/project";
+
+    } else {
+
+        websiteTab.className =
+            "px-5 py-2 rounded-lg bg-blue-600 text-white font-medium";
+
+        repoTab.className =
+            "px-5 py-2 rounded-lg bg-slate-800 text-slate-300 font-medium";
+
+        document.getElementById(
+            "projectUrl"
+        ).placeholder =
+            "https://example.com";
+    }
+}
+
+
+/* --------------------------------
+   Progress animation
+-------------------------------- */
+
+function startProgress() {
+
+    const section =
+        document.getElementById(
+            "progressSection"
+        );
+
+    section.classList.remove("hidden");
+
+    let progress = 0;
+
+    const bar =
+        document.getElementById(
+            "progressBar"
+        );
+
+    const text =
+        document.getElementById(
+            "progressText"
+        );
+
+    const interval =
+        setInterval(() => {
+
+            progress += 10;
+
+            if (progress >= 90) {
+
+                progress = 90;
+
+                clearInterval(interval);
+            }
+
+            bar.style.width =
+                progress + "%";
+
+            text.textContent =
+                progress + "%";
+
+        }, 250);
+
+    return interval;
+}
+
+
+/* --------------------------------
+   Analyze project
+-------------------------------- */
+
+async function analyzeProject() {
+
+    const url =
+        document.getElementById(
+            "projectUrl"
+        ).value.trim();
+
+    if (!url) {
+
+        alert(
+            "Please enter a project URL."
+        );
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById(
+            "analyzeBtn"
+        );
+
+    button.disabled = true;
+
+    button.textContent =
+        "🔄 Analyzing...";
+
+
+    const progressInterval =
+        startProgress();
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/analyze",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        url: url,
+                        mode: currentMode
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        clearInterval(
+            progressInterval
+        );
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.error ||
+                "Analysis failed."
+            );
+        }
+
+
+        document.getElementById(
+            "progressBar"
+        ).style.width = "100%";
+
+        document.getElementById(
+            "progressText"
+        ).textContent = "100%";
+
+
+        displayResults(
+            data.result
+        );
+
+
+    } catch (error) {
+
+        alert(
+            "Analysis Error: " +
+            error.message
+        );
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "🔍 Analyze Project";
+    }
+}
+
+
+/* --------------------------------
+   Display results
+-------------------------------- */
+
+function displayResults(data) {
+
+    document.getElementById(
+        "results"
+    ).classList.remove("hidden");
+
+
+    document.getElementById(
+        "filesCount"
+    ).textContent =
+        data.files_inspected || "-";
+
+
+    document.getElementById(
+        "riskLevel"
+    ).textContent =
+        data.risk_level || "Low";
+
+
+    document.getElementById(
+        "stackCount"
+    ).textContent =
+        data.stack ?
+        data.stack.length :
+        0;
+
+
+    document.getElementById(
+        "summary"
+    ).textContent =
+        data.summary || "";
+
+
+    /* STACK */
+
+    const stackContainer =
+        document.getElementById(
+            "stackContainer"
+        );
+
+    stackContainer.innerHTML = "";
+
+    (data.stack || []).forEach(
+        technology => {
+
+            const badge =
+                document.createElement(
+                    "span"
+                );
+
+            badge.className =
+                "px-3 py-2 bg-blue-950 border border-blue-800 rounded-lg text-blue-300 text-sm";
+
+            badge.textContent =
+                technology;
+
+            stackContainer.appendChild(
+                badge
+            );
+        }
+    );
+
+
+    /* HINDSIGHT */
+
+    if (data.memory) {
+
+        document.getElementById(
+            "previousFailure"
+        ).textContent =
+            data.memory.previous_failure || "-";
+
+        document.getElementById(
+            "previousFix"
+        ).textContent =
+            data.memory.previous_fix || "-";
+    }
+
+
+    /* RISK BADGE */
+
+    const riskBadge =
+        document.getElementById(
+            "riskBadge"
+        );
+
+    riskBadge.textContent =
+        data.risk_level || "Low";
+
+
+    riskBadge.className =
+        "px-4 py-1 rounded-full text-sm bg-yellow-950 text-yellow-300";
+
+
+    /* RISKS */
+
+    const risksContainer =
+        document.getElementById(
+            "risksContainer"
+        );
+
+    risksContainer.innerHTML = "";
+
+
+    if (!data.risks ||
+        data.risks.length === 0) {
+
+        risksContainer.innerHTML = `
+            <div class="p-4 bg-green-950/40 rounded-xl text-green-300">
+                ✅ No major risks detected.
+            </div>
+        `;
+
+    } else {
+
+        data.risks.forEach(
+            risk => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.className =
+                    "bg-slate-900 rounded-xl p-4 border border-slate-800";
+
+
+                item.innerHTML = `
+
+                    <div class="flex justify-between">
+
+                        <div>
+
+                            <p class="font-semibold text-white">
+                                ${risk.title}
+                            </p>
+
+                            <p class="text-sm text-slate-400 mt-1">
+                                ${risk.description}
+                            </p>
+
+                        </div>
+
+                        <span class="text-xs px-3 py-1 rounded-full bg-red-950 text-red-300 h-fit">
+                            ${risk.severity}
+                        </span>
+
+                    </div>
+
+                `;
+
+                risksContainer.appendChild(
+                    item
+                );
+            }
+        );
+    }
+
+
+    /* RECOMMENDATIONS */
+
+    const recommendationsContainer =
+        document.getElementById(
+            "recommendationsContainer"
+        );
+
+    recommendationsContainer.innerHTML = "";
+
+
+    (data.recommendations || [])
+        .forEach(
+            recommendation => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.className =
+                    "flex gap-3 bg-slate-900 rounded-xl p-4";
+
+                item.innerHTML = `
+
+                    <span class="text-blue-400">
+                        ✓
+                    </span>
+
+                    <span class="text-slate-300">
+                        ${recommendation}
+                    </span>
+
+                `;
+
+                recommendationsContainer
+                    .appendChild(item);
+            }
+        );
+
+
+    /* PIPELINE */
+
+    latestPipeline =
+        data.pipeline || "";
+
+    document.getElementById(
+        "pipeline"
+    ).textContent =
+        latestPipeline;
+
+
+    /* VALIDATION */
+
+    document.getElementById(
+        "validationStatus"
+    ).textContent =
+        data.validation?.status ||
+        "Passed";
+
+
+    const validationChecks =
+        document.getElementById(
+            "validationChecks"
+        );
+
+    validationChecks.innerHTML = "";
+
+
+    (data.validation?.checks || [])
+        .forEach(
+            check => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.className =
+                    "text-sm text-slate-300";
+
+                item.textContent =
+                    "✓ " + check;
+
+                validationChecks
+                    .appendChild(item);
+            }
+        );
+
+
+    /* FINAL */
+
+    document.getElementById(
+        "finalStatus"
+    ).textContent =
+        data.final_status ||
+        "Pipeline Ready";
+
+
+    document.getElementById(
+        "finalMessage"
+    ).textContent =
+        data.final_message ||
+        "Analysis completed.";
+
+
+    window.scrollTo({
+        top:
+            document.getElementById(
+                "results"
+            ).offsetTop - 30,
+
+        behavior: "smooth"
+    });
+}
+
+
+/* --------------------------------
+   Copy pipeline
+-------------------------------- */
+
+function copyPipeline() {
+
+    if (!latestPipeline) {
+
+        alert(
+            "No pipeline generated yet."
+        );
+
+        return;
+    }
+
+    navigator.clipboard.writeText(
+        latestPipeline
+    );
+
+    alert(
+        "CI/CD YAML copied!"
+    );
+}
+
+
+/* --------------------------------
+   Download pipeline
+-------------------------------- */
+
+function downloadPipeline() {
+
+    if (!latestPipeline) {
+
+        alert(
+            "No pipeline available."
+        );
+
+        return;
+    }
+
+
+    const blob =
+        new Blob(
+            [latestPipeline],
+            {
+                type:
+                    "text/yaml"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href = url;
+
+    link.download =
+        "hindsight-ai-ci.yml";
+
+    link.click();
+
+
+    URL.revokeObjectURL(url);
+}
+
+
+/* Start */
+
+checkServer();
+
+</script>
+
+</body>
+</html>
